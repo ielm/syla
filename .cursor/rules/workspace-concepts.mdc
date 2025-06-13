@@ -1,0 +1,26 @@
+---
+description: Workspace type implementations
+globs:
+  - "**/workspace*/**/*.rs"
+---
+
+# Workspace Implementation
+
+Four workspace types with different lifecycles:
+
+1. **Ephemeral**: 5min TTL, no persistence
+2. **Session**: 24hr TTL, state across executions  
+3. **Persistent**: 30 day retention, full persistence
+4. **Collaborative**: Real-time multi-user
+
+Resource allocation by type:
+```rust
+match workspace_type {
+    Ephemeral => (500_cpu, 512_mb, 1_gb_disk),
+    Session => (1000_cpu, 2048_mb, 5_gb_disk),
+    Persistent => (2000_cpu, 4096_mb, 20_gb_disk),
+    Collaborative => (4000_cpu, 8192_mb, 50_gb_disk),
+}
+```
+
+Storage hierarchy: Hot (NVMe) → Warm (SSD) → Cold (HDD) → Archive (S3)

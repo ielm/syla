@@ -1,0 +1,35 @@
+---
+description: Rust coding standards for Syla
+globs:
+  - "**/*.rs"
+  - "**/Cargo.toml"
+---
+
+# Rust Coding Standards
+
+Use these crates consistently:
+- `tokio` for async runtime
+- `tonic` for gRPC
+- `anyhow` for error handling in apps
+- `thiserror` for error types in libraries
+- `tracing` for logging
+- `serde` for serialization
+
+Code patterns:
+```rust
+// Error handling
+use anyhow::Result;
+
+// Async traits
+#[async_trait]
+impl ServiceTrait for MyService {
+    async fn method(&self) -> Result<Response> {
+        // Implementation
+    }
+}
+
+// Structured logging
+tracing::info!(user_id = %id, "Operation completed");
+```
+
+Always prefer `Arc<T>` over `Rc<T>` in async code.

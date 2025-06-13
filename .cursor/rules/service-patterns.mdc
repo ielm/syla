@@ -1,0 +1,29 @@
+---
+description: Microservice implementation patterns
+globs:
+  - "**/syla-*/src/**/*.rs"
+  - "**/proto/*.proto"
+---
+
+# Service Implementation Patterns
+
+Each service follows this structure:
+```rust
+// main.rs
+let config = Config::from_env()?;
+init_telemetry(&config.service_name)?;
+let db_pool = init_database(&config.database_url).await?;
+
+// gRPC server with graceful shutdown
+Server::builder()
+    .add_service(MyServiceServer::new(service))
+    .serve(config.listen_addr);
+```
+
+Key patterns:
+- Database per service
+- gRPC for inter-service communication
+- Health checks at `/health`
+- Metrics at port 9090
+- Circuit breakers for service clients
+- Structured error handling

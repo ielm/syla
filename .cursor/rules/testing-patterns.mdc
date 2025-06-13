@@ -1,0 +1,40 @@
+---
+description: Testing patterns and practices
+globs:
+  - "**/tests/**/*.rs"
+  - "**/*_test.rs"
+---
+
+# Testing Patterns
+
+Unit tests in same file:
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[tokio::test]
+    async fn test_feature() {
+        // Arrange
+        let service = create_test_service();
+        
+        // Act
+        let result = service.execute(request).await;
+        
+        // Assert
+        assert!(result.is_ok());
+    }
+}
+```
+
+Integration tests use testcontainers:
+```rust
+use testcontainers::{clients, images::postgres::Postgres};
+
+#[tokio::test]
+async fn test_integration() {
+    let docker = clients::Cli::default();
+    let postgres = docker.run(Postgres::default());
+    // Test with real dependencies
+}
+```

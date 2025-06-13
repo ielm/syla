@@ -1,0 +1,38 @@
+---
+description: CLI development patterns
+globs:
+  - "**/syla-cli/**/*.rs"
+---
+
+# CLI Development Patterns
+
+Use `clap` with derive API:
+```rust
+#[derive(Parser)]
+#[command(name = "syla")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Init { 
+        #[arg(long)]
+        name: Option<String> 
+    },
+    Exec {
+        file: PathBuf,
+        #[arg(long)]
+        timeout: Option<Duration>,
+    },
+}
+```
+
+Output patterns:
+- Human-readable by default
+- Support `--json` for structured output
+- Use indicatif for progress bars
+- Clear error messages with suggestions
+
+Always update `.eva/projects/syla-cli/blackboard.md` when adding commands.

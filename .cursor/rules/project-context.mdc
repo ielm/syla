@@ -1,0 +1,21 @@
+---
+description: Syla platform context and architecture
+alwaysApply: true
+---
+
+# Syla Platform Context
+
+Building a code execution platform for DataCurve's Shipd product with:
+- Sub-100ms cold starts using Firecracker microVMs
+- Four workspace types: Ephemeral, Session, Persistent, Collaborative
+- Polyrepo microservices architecture
+- Rust-based services communicating via gRPC
+
+Key services:
+- `syla-cli` - Developer CLI tool
+- `syla-api-gateway` - Entry point
+- `syla-workspace-service` - Workspace management
+- `syla-execution-service` - Code execution orchestration
+- `syla-sandbox-runtime` - Secure execution environment
+
+Current phase: Foundation (Weeks 1-3) - Setting up repos and CLI core.

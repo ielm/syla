@@ -1,0 +1,24 @@
+---
+description: Eva persistent memory system usage
+alwaysApply: true
+---
+
+# Eva System Usage
+
+Always use `.eva/` as persistent memory:
+- Read `.eva/blackboard.md` at session start
+- Update blackboard with progress and decisions
+- Architecture docs in `.eva/docs/architecture/`
+- Project-specific blackboards in `.eva/projects/<project>/blackboard.md`
+
+When making changes:
+1. Check blackboard for current context
+2. Implement changes
+3. Update blackboard with progress
+
+Example workflow:
+```bash
+cat .eva/blackboard.md  # Check status
+# ... work ...
+edit .eva/blackboard.md # Update progress
+```
