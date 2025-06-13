@@ -34,12 +34,31 @@ type = "cli"
 
 # Future: Runtimes
 # [repositories."syla.runtimes.python"]
-# url = "git@github.com:datacurve/syla-python-runtime.git"
+# url = "git@github.com:ielm/syla-python-runtime.git"
 # path = "platforms/syla/runtimes/python-runtime"
 # branch = "main"
 # language = "rust"
 # platform = "syla"
 # type = "runtime"
+
+# Future: Shipd Platform
+# [repositories."shipd.core.api-gateway"]
+# url = "git@github.com:ielm/shipd-api-gateway.git"
+# path = "platforms/shipd/core/api-gateway"
+# branch = "main"
+# language = "typescript"
+# platform = "shipd"
+# health_check = "http://localhost:3000/health"
+# ports = ["3000"]
+
+# [repositories."shipd.core.workflow-engine"]
+# url = "git@github.com:ielm/shipd-workflow-engine.git"
+# path = "platforms/shipd/core/workflow-engine"
+# branch = "main"
+# language = "typescript"
+# platform = "shipd"
+# health_check = "http://localhost:3001/health"
+# ports = ["3001"]
 
 # Infrastructure Dependencies
 [infrastructure]

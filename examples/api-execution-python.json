@@ -1,0 +1,5 @@
+{
+  "language": "python",
+  "code": "import sys\nprint(f'Python {sys.version}')\nprint('Hello from Syla!')",
+  "args": []
+}

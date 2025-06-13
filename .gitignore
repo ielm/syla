@@ -40,6 +40,7 @@ yarn-error.log*
 tmp/
 temp/
 *.tmp
+test-*.json
 
 # Backup files
 *.bak

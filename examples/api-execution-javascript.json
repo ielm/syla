@@ -1,0 +1,5 @@
+{
+  "language": "javascript", 
+  "code": "console.log(`Node.js ${process.version}`);\nconsole.log('Hello from Syla!');",
+  "args": []
+}

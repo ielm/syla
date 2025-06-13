@@ -1,0 +1,42 @@
+# Platform Configuration Template
+# Copy this file and customize for your new platform
+
+# Replace {PLATFORM} with your platform name (e.g., shipd, atlas, etc.)
+# Replace {SERVICE} with your service name (e.g., api-gateway, auth-service, etc.)
+
+# Core Services
+[repositories."{PLATFORM}.core.api-gateway"]
+url = "git@github.com:ielm/{PLATFORM}-api-gateway.git"
+path = "platforms/{PLATFORM}/core/api-gateway"
+branch = "main"
+language = "rust"  # or "typescript", "python", etc.
+platform = "{PLATFORM}"
+health_check = "http://localhost:8080/health"
+ports = ["8080"]
+depends_on = []
+
+[repositories."{PLATFORM}.core.{SERVICE}"]
+url = "git@github.com:ielm/{PLATFORM}-{SERVICE}.git"
+path = "platforms/{PLATFORM}/core/{SERVICE}"
+branch = "main"
+language = "rust"
+platform = "{PLATFORM}"
+health_check = "http://localhost:8081/health"
+ports = ["8081"]
+depends_on = ["infrastructure.postgres", "infrastructure.redis"]
+
+# Platform Tools
+[repositories."{PLATFORM}.tools.cli"]
+url = "git@github.com:ielm/{PLATFORM}-cli.git"
+path = "platforms/{PLATFORM}/tools/cli"
+branch = "main"
+language = "rust"
+platform = "{PLATFORM}"
+type = "cli"
+
+# Platform-specific Infrastructure
+# [infrastructure."{PLATFORM}-cache"]
+# type = "external"
+# docker_image = "redis:7-alpine"
+# ports = ["6381:6379"]
+# health_check = "redis-cli ping"
