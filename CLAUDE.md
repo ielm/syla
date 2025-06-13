@@ -4,6 +4,19 @@ This file provides guidance to Claude Code when working with the Syla platform w
 
 ## Getting Started
 
+### New Developer Setup
+
+For new developers setting up Syla:
+```bash
+# One-line installation
+curl -sSf https://your-domain.com/setup.sh | sh
+
+# Or with custom path
+curl -sSf https://your-domain.com/setup.sh | sh -s -- --path /custom/path
+```
+
+### Existing Workspace
+
 Always start your session by checking system health and workspace status:
 
 ```bash
@@ -17,15 +30,18 @@ This is a **meta-platform workspace** that orchestrates multiple repositories:
 
 ```
 syla/                          # Parent workspace (you are here)
+├── cli/                       # Meta-CLI for workspace management (Rust)
+├── scripts/                   # Setup and utility scripts
+│   ├── setup.sh              # One-line installation script
+│   └── serve-setup.py        # Script server with authentication
 ├── platforms/                 # Product platforms
 │   └── syla/                 # Code execution platform
 │       ├── core/            # Core services
 │       │   ├── api-gateway/
 │       │   └── execution-service/
 │       └── tools/           # Platform tools
-│           └── cli/
-├── .platform/                 # Meta-platform tooling
-│   ├── syla-cli/            # Workspace management CLI (Rust)
+│           └── cli/         # Syla platform CLI
+├── .platform/                 # Meta-platform configuration
 │   └── config/
 │       └── repos.toml       # Repository manifest
 └── .eva/                     # Persistent AI memory

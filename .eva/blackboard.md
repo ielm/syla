@@ -41,6 +41,11 @@
   - Repository manifest system (`repos.toml`)
   - Platform directory structure
   - Updated CLAUDE.md for workspace guidance
+- **Workspace Restructured:**
+  - Moved meta-CLI from `.platform/syla-cli/` to root `cli/`
+  - Created `scripts/` directory with setup scripts
+  - Added one-line installation script (setup.sh)
+  - All repositories pushed to GitHub under `ielm/`
 
 ## Current Implementation Status
 
@@ -80,15 +85,18 @@
 ### Directory Structure
 ```
 syla/                      # Parent workspace (✅ Git initialized)
+├── cli/                   # ✅ Meta-CLI for workspace management
+├── scripts/               # ✅ Setup and utility scripts
+│   ├── setup.sh          # One-line installation script
+│   └── serve-setup.py    # Script server with authentication
 ├── platforms/            # Product platforms
 │   └── syla/            # Code execution platform
 │       ├── core/        # Core services
-│       │   ├── api-gateway/     # ✅ Moved from root
-│       │   └── execution-service/ # ✅ Moved from root
+│       │   ├── api-gateway/     # ✅ github.com/ielm/syla-api-gateway
+│       │   └── execution-service/ # ✅ github.com/ielm/syla-execution-service
 │       └── tools/       # Platform tools
-│           └── cli/     # ✅ Moved from root
-├── .platform/           # Meta-platform tooling
-│   ├── syla-cli/       # ✅ Rust meta-CLI
+│           └── cli/     # ✅ github.com/ielm/syla-cli
+├── .platform/           # Meta-platform configuration
 │   └── config/
 │       └── repos.toml  # ✅ Repository manifest
 ├── docker-compose.yml  # Redis + PostgreSQL
@@ -103,19 +111,23 @@ syla/                      # Parent workspace (✅ Git initialized)
    - ✅ Moved syla-api-gateway → platforms/syla/core/api-gateway/
    - ✅ Moved syla-execution-service → platforms/syla/core/execution-service/
    - ✅ repos.toml already had correct paths
-2. **Complete meta-CLI implementation**
+2. **✅ Create parent repository** (COMPLETED)
+   - ✅ Initialized git repo in workspace root
+   - ✅ Added appropriate .gitignore
+   - ✅ Pushed to GitHub as `ielm/syla`
+3. **✅ Setup Developer Experience** (COMPLETED)
+   - ✅ Moved meta-CLI to root `cli/` directory
+   - ✅ Created `scripts/setup.sh` for one-line installation
+   - ✅ Created `scripts/serve-setup.py` for authenticated distribution
+4. **Complete meta-CLI implementation**
    - Implement `syla dev up` command
    - Add service log aggregation
    - Platform start/stop commands
-3. **✅ Create parent repository** (COMPLETED)
-   - ✅ Initialized git repo in workspace root
-   - ✅ Added appropriate .gitignore
-   - Push to GitHub as `datacurve/syla` (pending)
-4. **Documentation**
+5. **Documentation**
    - Create comprehensive README
    - Add QUICKSTART guide for polyrepo
    - Document meta-CLI usage
-5. **Future platforms**
+6. **Future platforms**
    - Prepare for platforms/shipd/
    - Design shared/ components
    - Plan cross-platform integration
