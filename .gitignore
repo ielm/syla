@@ -51,6 +51,6 @@ platforms/*/*/target/
 platforms/*/*/*/target/
 
 # Child repository directories (these are independent git repos)
-platforms/syla/core/api-gateway/.git
-platforms/syla/core/execution-service/.git
-platforms/syla/tools/cli/.git
+platforms/syla/core/api-gateway/
+platforms/syla/core/execution-service/
+platforms/syla/tools/cli/
