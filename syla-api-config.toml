@@ -1,0 +1,12 @@
+workspace_root = "/Users/ivan/Dropbox/Code/datacurve/syla-workspace"
+use_remote_api = true
+api_endpoint = "http://localhost:8084"
+
+[api]
+endpoint = "http://localhost:8084"
+timeout = 30
+
+[execution]
+default_timeout = 30
+max_memory_mb = 2048
+max_cpu_cores = 2.0

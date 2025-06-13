@@ -1,0 +1,66 @@
+# Syla Meta-Platform Repository Manifest
+
+[repositories]
+
+# Core Services
+[repositories."syla.core.api-gateway"]
+url = "git@github.com:ielm/syla-api-gateway.git"
+path = "platforms/syla/core/api-gateway"
+branch = "main"
+language = "rust"
+platform = "syla"
+health_check = "http://localhost:8084/health"
+ports = ["8084"]
+depends_on = ["syla.core.execution-service"]
+
+[repositories."syla.core.execution-service"]
+url = "git@github.com:ielm/syla-execution-service.git"
+path = "platforms/syla/core/execution-service"
+branch = "main"
+language = "rust"
+platform = "syla"
+health_check = "http://localhost:8083/health"
+ports = ["8083"]
+depends_on = ["infrastructure.redis", "infrastructure.docker"]
+
+# Tools
+[repositories."syla.tools.cli"]
+url = "git@github.com:ielm/syla-cli.git"
+path = "platforms/syla/tools/cli"
+branch = "main"
+language = "rust"
+platform = "syla"
+type = "cli"
+
+# Future: Runtimes
+# [repositories."syla.runtimes.python"]
+# url = "git@github.com:datacurve/syla-python-runtime.git"
+# path = "platforms/syla/runtimes/python-runtime"
+# branch = "main"
+# language = "rust"
+# platform = "syla"
+# type = "runtime"
+
+# Infrastructure Dependencies
+[infrastructure]
+
+[infrastructure.redis]
+type = "external"
+docker_image = "redis:7-alpine"
+ports = ["6380:6379"]
+health_check = "redis-cli ping"
+
+[infrastructure.postgres]
+type = "external"
+docker_image = "postgres:15"
+ports = ["5434:5432"]
+environment = [
+  "POSTGRES_USER=syla",
+  "POSTGRES_PASSWORD=syla_dev",
+  "POSTGRES_DB=syla_dev"
+]
+health_check = "pg_isready"
+
+[infrastructure.docker]
+type = "system"
+required_version = "20.10.0"

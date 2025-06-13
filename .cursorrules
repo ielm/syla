@@ -1,0 +1,22 @@
+# Syla Platform - Code Execution for Shipd
+
+Building a high-performance code execution platform with:
+- Firecracker microVMs for secure isolation
+- Sub-100ms cold starts
+- Polyrepo microservices in Rust
+- gRPC communication
+- Four workspace types: Ephemeral, Session, Persistent, Collaborative
+
+## Eva System
+Always use .eva/ for persistent memory:
+- Read .eva/blackboard.md at start
+- Update blackboard with progress
+- Architecture in .eva/docs/architecture/
+
+## Code Standards
+- Rust with tokio/tonic/anyhow
+- Database per service
+- Health checks and metrics
+- Comprehensive testing with testcontainers
+
+Current focus: Phase 1 Foundation (Weeks 1-3)

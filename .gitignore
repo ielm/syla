@@ -1,0 +1,56 @@
+# Rust build artifacts
+target/
+Cargo.lock
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Docker volumes
+data/
+postgres_data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+backup-*.tar.gz
+
+# Platform-specific build files
+platforms/*/target/
+platforms/*/*/target/
+platforms/*/*/*/target/
+
+# Child repository directories (these are independent git repos)
+platforms/syla/core/api-gateway/.git
+platforms/syla/core/execution-service/.git
+platforms/syla/tools/cli/.git
