@@ -129,7 +129,7 @@ async fn main() -> Result<()> {
 
 ```rust
 pub struct ApiGateway {
-    auth_client: AuthServiceClient,
+    auth_interceptor: AuthInterceptor,
     workspace_client: WorkspaceServiceClient,
     execution_client: ExecutionServiceClient,
     rate_limiter: RateLimiter,
@@ -137,8 +137,9 @@ pub struct ApiGateway {
 }
 
 // Key responsibilities:
-// - Request routing
-// - Authentication/authorization
+// - gRPC service implementation
+// - REST transcoding via HTTP annotations
+// - Authentication via external service
 // - Rate limiting
 // - Circuit breaking
 // - Request/response transformation
@@ -146,11 +147,12 @@ pub struct ApiGateway {
 ```
 
 **Key Features**:
-- GraphQL and REST API support
-- WebSocket for real-time updates
-- Request validation and sanitization
+- gRPC-first with REST transcoding
+- External authentication integration (DataCurve/Shipd)
+- Streaming support for real-time updates
+- Request validation via protobuf
 - Response caching
-- API documentation generation
+- Auto-generated API documentation
 
 ### 2. Workspace Service
 
@@ -476,30 +478,32 @@ pub enum Permission {
 
 ### gRPC Service Definitions
 
+All services communicate via gRPC with REST transcoding for external clients:
+
 ```protobuf
-// proto/workspace.proto
+// platforms/syla/proto/syla.proto
 syntax = "proto3";
 
-package syla.workspace.v1;
+package syla.v1;
 
-service WorkspaceService {
-    rpc CreateWorkspace(CreateWorkspaceRequest) returns (Workspace);
-    rpc GetWorkspace(GetWorkspaceRequest) returns (Workspace);
-    rpc UpdateWorkspace(UpdateWorkspaceRequest) returns (Workspace);
-    rpc DeleteWorkspace(DeleteWorkspaceRequest) returns (Empty);
-    rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse);
-    rpc ShareWorkspace(ShareWorkspaceRequest) returns (Empty);
-}
+import "google/api/annotations.proto";
 
-message Workspace {
-    string id = 1;
-    string name = 2;
-    string owner_id = 3;
-    WorkspaceType type = 4;
-    WorkspaceStatus status = 5;
-    google.protobuf.Timestamp created_at = 6;
-    google.protobuf.Timestamp expires_at = 7;
-    map<string, string> metadata = 8;
+service SylaGateway {
+    // Execution management
+    rpc CreateExecution(CreateExecutionRequest) returns (CreateExecutionResponse) {
+        option (google.api.http) = {
+            post: "/v1/executions"
+            body: "*"
+        };
+    }
+    
+    // Workspace management
+    rpc CreateWorkspace(CreateWorkspaceRequest) returns (CreateWorkspaceResponse) {
+        option (google.api.http) = {
+            post: "/v1/workspaces"
+            body: "*"
+        };
+    }
 }
 ```
 

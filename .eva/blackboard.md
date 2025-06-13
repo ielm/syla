@@ -203,3 +203,18 @@ syla/                      # Parent workspace (✅ Git initialized)
 - Comprehensive telemetry for LLM training
 - Phase 1 Complete: Meta-platform architecture and developer experience
 - Phase 2 In Progress: Core services implementation
+- **gRPC Migration Started**: Moving from REST to gRPC with REST transcoding
+- **Authentication**: Integrating with external DataCurve/Shipd auth service
+
+## gRPC Implementation Progress
+- ✅ Proto files created (platforms/syla/proto/syla.proto)
+- ✅ Google API dependencies added for REST transcoding
+- ✅ API Gateway updated with gRPC server alongside REST
+- ✅ Authentication interceptor created for external auth integration
+- ✅ Build system updated with proto compilation
+- ✅ Setup script updated to install protoc
+- ✅ Service architecture documentation updated
+- 🚧 Execution service gRPC client conversion
+- 🚧 CLI gRPC client support
+- 📋 Complete workspace service implementation
+- 📋 Streaming execution output support

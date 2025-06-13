@@ -92,6 +92,56 @@ parse_args() {
     done
 }
 
+# Install protoc
+install_protoc() {
+    local PROTOC_VERSION="25.1"
+    local PROTOC_ZIP=""
+    local PROTOC_URL=""
+    
+    info "Installing Protocol Buffers compiler..."
+    
+    # Detect OS and architecture
+    case "$OS" in
+        Linux)
+            case "$(uname -m)" in
+                x86_64) PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-x86_64.zip" ;;
+                aarch64) PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-aarch_64.zip" ;;
+                *) error "Unsupported Linux architecture: $(uname -m)"; return 1 ;;
+            esac
+            ;;
+        Darwin)
+            case "$(uname -m)" in
+                x86_64) PROTOC_ZIP="protoc-${PROTOC_VERSION}-osx-x86_64.zip" ;;
+                arm64) PROTOC_ZIP="protoc-${PROTOC_VERSION}-osx-aarch_64.zip" ;;
+                *) error "Unsupported macOS architecture: $(uname -m)"; return 1 ;;
+            esac
+            ;;
+        *) error "Unsupported OS: $OS"; return 1 ;;
+    esac
+    
+    PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+    
+    # Create local bin directory if it doesn't exist
+    mkdir -p "$HOME/.local/bin"
+    
+    # Download and install
+    info "Downloading protoc from ${PROTOC_URL}..."
+    curl -OL "${PROTOC_URL}"
+    unzip -o "${PROTOC_ZIP}" -d "$HOME/.local" bin/protoc 'include/*'
+    rm -f "${PROTOC_ZIP}"
+    
+    # Make executable
+    chmod +x "$HOME/.local/bin/protoc"
+    
+    # Add to PATH if not already present
+    if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+        export PATH="$HOME/.local/bin:$PATH"
+        warning "Added $HOME/.local/bin to PATH for this session"
+    fi
+    
+    success "protoc installed to $HOME/.local/bin/protoc"
+}
+
 # Determine workspace directory
 determine_workspace() {
     if [[ -z "$WORKSPACE_PATH" ]]; then
@@ -169,6 +219,21 @@ check_requirements() {
         fi
     else
         success "Rust: $(rustc --version)"
+    fi
+    
+    # Check protoc
+    if ! command -v protoc &> /dev/null; then
+        warning "Protocol Buffers compiler (protoc) is not installed."
+        echo ""
+        read -p "Would you like to install protoc? (y/n) " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            install_protoc
+        else
+            warning "protoc is required for gRPC services. You can install it manually later."
+        fi
+    else
+        success "protoc: $(protoc --version)"
     fi
     
     # Check GitHub CLI (optional)
@@ -252,14 +317,27 @@ setup_shell() {
     esac
     
     # Add to PATH if not already present
+    NEED_RELOAD=false
+    
     if ! grep -q "export PATH=\"$WORKSPACE_PATH:\$PATH\"" "$RC_FILE" 2>/dev/null; then
         echo "" >> "$RC_FILE"
         echo "# Syla Platform" >> "$RC_FILE"
         echo "export PATH=\"$WORKSPACE_PATH:\$PATH\"" >> "$RC_FILE"
         success "Added Syla to PATH in $RC_FILE"
-        SHELL_CONFIG_MESSAGE="${YELLOW}Note:${NC} Run ${GREEN}source $RC_FILE${NC} or restart your terminal to add syla to PATH"
+        NEED_RELOAD=true
     else
         info "Syla already in PATH"
+    fi
+    
+    # Also add ~/.local/bin if protoc was installed there
+    if [[ -f "$HOME/.local/bin/protoc" ]] && ! grep -q "export PATH=\"\$HOME/.local/bin:\$PATH\"" "$RC_FILE" 2>/dev/null; then
+        echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$RC_FILE"
+        success "Added ~/.local/bin to PATH in $RC_FILE"
+        NEED_RELOAD=true
+    fi
+    
+    if [[ "$NEED_RELOAD" == "true" ]]; then
+        SHELL_CONFIG_MESSAGE="${YELLOW}Note:${NC} Run ${GREEN}source $RC_FILE${NC} or restart your terminal to update your PATH"
     fi
 }
 
