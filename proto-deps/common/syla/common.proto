@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package syla.common.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// Common execution context passed with all requests
+message ExecutionContext {
+    string user_id = 1;
+    string workspace_id = 2;
+    string request_id = 3;
+    string session_id = 4;
+    map<string, string> metadata = 5;
+}
+
+// Pagination request
+message PageRequest {
+    uint32 size = 1;     // Page size (max items per page)
+    uint32 number = 2;   // Page number (1-based)
+    string sort_by = 3;  // Sort field
+    bool descending = 4; // Sort order
+}
+
+// Pagination response
+message PageResponse {
+    uint32 total = 1;       // Total items
+    uint32 size = 2;        // Items per page
+    uint32 number = 3;      // Current page
+    uint32 total_pages = 4; // Total pages
+}
+
+// Health check
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+    HealthStatus status = 1;
+    string message = 2;
+    string version = 3;
+    google.protobuf.Duration uptime = 4;
+    map<string, string> metadata = 5;
+}
+
+enum HealthStatus {
+    HEALTH_STATUS_UNSPECIFIED = 0;
+    HEALTH_STATUS_HEALTHY = 1;
+    HEALTH_STATUS_DEGRADED = 2;
+    HEALTH_STATUS_UNHEALTHY = 3;
+}
+
+// Common error response
+message ErrorResponse {
+    string code = 1;
+    string message = 2;
+    string details = 3;
+    google.protobuf.Timestamp timestamp = 4;
+    string trace_id = 5;
+}
+
+// Common metadata
+message ResourceMetadata {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    google.protobuf.Timestamp created_at = 4;
+    google.protobuf.Timestamp updated_at = 5;
+    map<string, string> labels = 6;
+    map<string, string> annotations = 7;
+}

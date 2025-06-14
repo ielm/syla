@@ -1,50 +1,30 @@
-# Development overrides for docker-compose.yml
-# Use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-
 version: '3.8'
 
 services:
-  # Override for API Gateway with volume mount for hot reload
+  # API Gateway with hot-reload
   api-gateway:
-    image: syla/api-gateway:dev
-    build:
-      context: platforms/syla/core/api-gateway
-      dockerfile: Dockerfile.dev
     volumes:
       - ./platforms/syla/core/api-gateway:/app
       - api-gateway-target:/app/target
-      - api-gateway-cargo:/usr/local/cargo
-    environment:
-      - RUST_LOG=debug
-      - CARGO_TARGET_DIR=/app/target
-      - SKIP_AUTH=true
+      - api-gateway-registry:/usr/local/cargo/registry
     command: cargo watch -x run
-    depends_on:
-      - redis
-      - postgres
+    environment:
+      CARGO_HOME: /usr/local/cargo
+      RUST_BACKTRACE: 1
 
-  # Override for Execution Service with volume mount
+  # Execution Service with hot-reload
   execution-service:
-    image: syla/execution-service:dev
-    build:
-      context: platforms/syla/core/execution-service
-      dockerfile: Dockerfile.dev
     volumes:
       - ./platforms/syla/core/execution-service:/app
-      - execution-target:/app/target
-      - execution-cargo:/usr/local/cargo
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - RUST_LOG=debug
-      - CARGO_TARGET_DIR=/app/target
+      - execution-service-target:/app/target
+      - execution-service-registry:/usr/local/cargo/registry
     command: cargo watch -x run
-    depends_on:
-      - redis
-      - postgres
+    environment:
+      CARGO_HOME: /usr/local/cargo
+      RUST_BACKTRACE: 1
 
 volumes:
-  # Separate volumes for build caches to speed up rebuilds
   api-gateway-target:
-  api-gateway-cargo:
-  execution-target:
-  execution-cargo:
+  api-gateway-registry:
+  execution-service-target:
+  execution-service-registry:

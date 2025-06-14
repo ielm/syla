@@ -165,6 +165,37 @@ dev-watch:
 		sleep 2; \
 	done
 
+# Docker commands
+.PHONY: docker-build
+docker-build: proto-deps
+	@echo "Building Docker images..."
+	docker-compose build
+
+.PHONY: docker-up
+docker-up:
+	@echo "Starting services..."
+	docker-compose up -d
+
+.PHONY: docker-dev
+docker-dev:
+	@echo "Starting services in development mode..."
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+.PHONY: docker-down
+docker-down:
+	@echo "Stopping services..."
+	docker-compose down
+
+.PHONY: docker-logs
+docker-logs:
+	docker-compose logs -f
+
+.PHONY: docker-clean
+docker-clean:
+	@echo "Cleaning Docker resources..."
+	docker-compose down -v
+	docker system prune -f
+
 # Clean all services
 .PHONY: clean
 clean:

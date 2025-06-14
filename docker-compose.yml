@@ -1,21 +1,143 @@
 version: '3.8'
 
 services:
+  # PostgreSQL for persistent storage
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: syla_postgres
     environment:
       POSTGRES_USER: syla
-      POSTGRES_PASSWORD: syla_dev
-      POSTGRES_DB: syla_dev
+      POSTGRES_PASSWORD: syla_dev_password
+      POSTGRES_DB: syla
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
     ports:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U syla -d syla"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - syla-network
 
+  # Redis for queue and caching
   redis:
     image: redis:7-alpine
+    container_name: syla_redis
     ports:
       - "6380:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    networks:
+      - syla-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./platforms/syla/core/api-gateway
+      dockerfile: Dockerfile
+    container_name: syla_api_gateway
+    ports:
+      - "8084:8080"  # REST API
+      - "8085:8081"  # gRPC
+    environment:
+      RUST_LOG: info,syla_api_gateway=debug
+      DATABASE_URL: postgresql://syla:syla_dev_password@postgres:5432/syla
+      REDIS_URL: redis://redis:6379
+      EXECUTION_SERVICE_URL: http://execution-service:8081
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-mock:8090}
+      # Service configuration
+      PORT: 8080
+      GRPC_PORT: 8081
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - syla-network
+
+  # Execution Service
+  execution-service:
+    build:
+      context: ./platforms/syla/core/execution-service
+      dockerfile: Dockerfile
+    container_name: syla_execution_service
+    ports:
+      - "8083:8083"  # REST API (internal)
+      - "8086:8081"  # gRPC
+    environment:
+      RUST_LOG: info,syla_execution_service=debug
+      DATABASE_URL: postgresql://syla:syla_dev_password@postgres:5432/syla
+      REDIS_URL: redis://redis:6379
+      PORT: 8083
+      GRPC_PORT: 8081
+      # Docker-in-Docker configuration
+      DOCKER_HOST: tcp://docker:2375
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      docker:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - syla-network
+
+  # Docker-in-Docker for execution service
+  docker:
+    image: docker:24-dind
+    container_name: syla_docker
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    ports:
+      - "2375:2375"
+    networks:
+      - syla-network
+    volumes:
+      - docker_data:/var/lib/docker
+
+  # Mock auth service for development
+  auth-mock:
+    image: mockserver/mockserver:latest
+    container_name: syla_auth_mock
+    ports:
+      - "8090:1080"
+    environment:
+      MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/auth-mock.json
+    volumes:
+      - ./dev/mock-auth:/config:ro
+    networks:
+      - syla-network
 
 volumes:
   postgres_data:
+  redis_data:
+  docker_data:
+
+networks:
+  syla-network:
+    driver: bridge
+    name: syla_network
