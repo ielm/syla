@@ -189,6 +189,24 @@ enum DevCommands {
         #[arg(long)]
         integration: bool,
     },
+
+    /// Watch for changes and auto-rebuild/restart
+    Watch {
+        /// Services to watch (all if not specified)
+        #[arg(short, long)]
+        services: Vec<String>,
+
+        /// Build only, don't restart
+        #[arg(long)]
+        build_only: bool,
+    },
+
+    /// Build changed services
+    BuildChanged {
+        /// Force rebuild all
+        #[arg(long)]
+        all: bool,
+    },
 }
 
 #[derive(Subcommand)]

@@ -1,9 +1,10 @@
 use anyhow::{Context, Result};
 use colored::Colorize;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::time::Duration;
 use std::collections::HashMap;
+use tokio::time::interval;
 
 use crate::config::Config;
 use crate::services::{ProcessManager, ProcessConfig};
@@ -32,6 +33,12 @@ pub async fn run(command: DevCommands, workspace_root: Option<PathBuf>) -> Resul
         DevCommands::Validate { fix, integration } => {
             validate(&config, fix, integration).await?;
         }
+        DevCommands::Watch { services, build_only } => {
+            watch(&config, services, build_only).await?;
+        }
+        DevCommands::BuildChanged { all } => {
+            build_changed(&config, all).await?;
+        }
     }
     Ok(())
 }
@@ -39,13 +46,26 @@ pub async fn run(command: DevCommands, workspace_root: Option<PathBuf>) -> Resul
 async fn up(config: &Config, platform: Option<String>, detach: bool) -> Result<()> {
     println!("{}", "Starting development environment...".bold());
     
+    // Check if we're in development mode
+    let dev_mode = std::env::var("SYLA_DEV_MODE").unwrap_or_else(|_| "false".to_string()) == "true";
+    
     // Start Docker infrastructure
     let docker_compose_path = config.workspace_root.join("docker-compose.yml");
     if docker_compose_path.exists() {
-        println!("Starting Docker containers...");
+        println!("Starting Docker infrastructure...");
         
         let mut cmd = Command::new("docker");
-        cmd.args(&["compose", "up"]);
+        cmd.args(&["compose"]);
+        
+        // Add dev override if in dev mode
+        if dev_mode {
+            let dev_compose = config.workspace_root.join("docker-compose.dev.yml");
+            if dev_compose.exists() {
+                cmd.args(&["-f", "docker-compose.yml", "-f", "docker-compose.dev.yml"]);
+            }
+        }
+        
+        cmd.arg("up");
         if detach {
             cmd.arg("-d");
         }
@@ -336,4 +356,92 @@ async fn check_service_health(url: &str) -> bool {
         Ok(response) => response.status().is_success(),
         Err(_) => false,
     }
+}
+
+async fn watch(config: &Config, _services: Vec<String>, build_only: bool) -> Result<()> {
+    println!("{}", "Starting file watcher...".bold());
+    println!("Watching for changes (press Ctrl+C to stop)");
+    
+    // Use make watch if available
+    let makefile = config.workspace_root.join("Makefile");
+    if makefile.exists() {
+        let mut cmd = Command::new("make");
+        cmd.arg("dev-watch");
+        cmd.current_dir(&config.workspace_root);
+        cmd.stdout(Stdio::inherit());
+        cmd.stderr(Stdio::inherit());
+        
+        let status = cmd.status()
+            .context("Failed to run make dev-watch")?;
+            
+        if !status.success() {
+            return Err(anyhow::anyhow!("Watch command failed"));
+        }
+    } else {
+        // Fallback to simple polling
+        let mut interval = interval(Duration::from_secs(2));
+        
+        loop {
+            interval.tick().await;
+            
+            // Detect changes
+            let output = Command::new(&config.workspace_root.join("scripts/detect-changes.sh"))
+                .output()
+                .context("Failed to detect changes")?;
+                
+            let changed = String::from_utf8_lossy(&output.stdout);
+            if !changed.trim().is_empty() {
+                println!("\n{} Detected changes in: {}", "[*]".yellow(), changed.trim());
+                
+                // Build changed services
+                for service in changed.split_whitespace() {
+                    println!("Building {}...", service);
+                    
+                    let status = Command::new("make")
+                        .arg(format!("{}-build", service))
+                        .current_dir(&config.workspace_root)
+                        .status()
+                        .context("Failed to build service")?;
+                        
+                    if status.success() && !build_only {
+                        // Restart service
+                        let service_path = PathBuf::from(service);
+                        let service_name = service_path
+                            .file_name()
+                            .unwrap()
+                            .to_string_lossy()
+                            .to_string();
+                        println!("Restarting {}...", service_name);
+                        restart(config, &service_name).await?;
+                    }
+                }
+            }
+        }
+    }
+    
+    Ok(())
+}
+
+async fn build_changed(config: &Config, all: bool) -> Result<()> {
+    println!("{}", "Building changed services...".bold());
+    
+    let mut cmd = Command::new("make");
+    if all {
+        cmd.arg("all");
+    } else {
+        cmd.arg("build-changed");
+    }
+    cmd.current_dir(&config.workspace_root);
+    cmd.stdout(Stdio::inherit());
+    cmd.stderr(Stdio::inherit());
+    
+    let status = cmd.status()
+        .context("Failed to run make build")?;
+        
+    if !status.success() {
+        return Err(anyhow::anyhow!("Build failed"));
+    }
+    
+    println!("{} Build complete", "✓".green());
+    Ok(())
 }

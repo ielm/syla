@@ -69,6 +69,24 @@ pub enum DevCommands {
         #[clap(long)]
         integration: bool,
     },
+
+    /// Watch for changes and auto-rebuild/restart
+    Watch {
+        /// Services to watch (all if not specified)
+        #[clap(short, long)]
+        services: Vec<String>,
+
+        /// Build only, don't restart
+        #[clap(long)]
+        build_only: bool,
+    },
+
+    /// Build changed services
+    BuildChanged {
+        /// Force rebuild all
+        #[clap(long)]
+        all: bool,
+    },
 }
 
 #[derive(Subcommand)]

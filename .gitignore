@@ -55,3 +55,12 @@ platforms/*/*/*/target/
 platforms/syla/core/api-gateway/
 platforms/syla/core/execution-service/
 platforms/syla/tools/cli/
+
+# Proto dependencies (downloaded)
+proto-deps/googleapis/
+platforms/*/proto-deps/
+platforms/*/*/proto-deps/
+platforms/*/*/*/proto-deps/
+
+# Symlink to CLI binary
+/syla

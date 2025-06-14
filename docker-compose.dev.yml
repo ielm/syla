@@ -1,0 +1,50 @@
+# Development overrides for docker-compose.yml
+# Use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  # Override for API Gateway with volume mount for hot reload
+  api-gateway:
+    image: syla/api-gateway:dev
+    build:
+      context: platforms/syla/core/api-gateway
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./platforms/syla/core/api-gateway:/app
+      - api-gateway-target:/app/target
+      - api-gateway-cargo:/usr/local/cargo
+    environment:
+      - RUST_LOG=debug
+      - CARGO_TARGET_DIR=/app/target
+      - SKIP_AUTH=true
+    command: cargo watch -x run
+    depends_on:
+      - redis
+      - postgres
+
+  # Override for Execution Service with volume mount
+  execution-service:
+    image: syla/execution-service:dev
+    build:
+      context: platforms/syla/core/execution-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./platforms/syla/core/execution-service:/app
+      - execution-target:/app/target
+      - execution-cargo:/usr/local/cargo
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - RUST_LOG=debug
+      - CARGO_TARGET_DIR=/app/target
+    command: cargo watch -x run
+    depends_on:
+      - redis
+      - postgres
+
+volumes:
+  # Separate volumes for build caches to speed up rebuilds
+  api-gateway-target:
+  api-gateway-cargo:
+  execution-target:
+  execution-cargo:
